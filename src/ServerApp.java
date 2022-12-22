@@ -124,6 +124,7 @@ public class ServerApp implements ActionListener {
         clientScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         clientScrollPane.setPreferredSize(new Dimension((int) (screenSize.width * 0.35), (int) (screenSize.height * 0.35)));
         clientPanel = new JPanel();
+        clientPanel.setLayout(new BoxLayout(clientPanel, BoxLayout.Y_AXIS));
         clientScrollPane.setViewportView(clientPanel);
         mainFrame.add(clientScrollPane, BorderLayout.WEST);
 
@@ -132,6 +133,7 @@ public class ServerApp implements ActionListener {
         logScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         logScrollPane.setPreferredSize(new Dimension((int) (screenSize.width * 0.15), (int) (screenSize.height * 0.15)));
         logPanel = new JPanel();
+        logPanel.setLayout(new BoxLayout(logPanel, BoxLayout.Y_AXIS));
         logScrollPane.setViewportView(logPanel);
         mainFrame.add(logScrollPane, BorderLayout.EAST);
 
