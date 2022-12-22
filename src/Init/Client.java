@@ -1,8 +1,10 @@
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.net.Socket;
+package Init;
+
+import FileTracker.FileTracker;
+
 import java.io.*;
-import java.util.*;
+import java.net.Socket;
+import java.util.Scanner;
 
 public class Client {
     private Socket socket;
@@ -10,12 +12,16 @@ public class Client {
     private BufferedWriter bufferedWriter;
     String clientName;
 
+    FileTracker fileTracker;
+
     public Client(Socket socket, String clientName) {
         try {
             this.socket = socket;
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.clientName = clientName;
+            this.fileTracker = new FileTracker();
+            fileTracker.setMap(fileTracker.getFilesAndFolders(System.getProperty("user.dir")));
         } catch (Exception e) {
             closeEverything(socket, bufferedReader, bufferedWriter);
             e.printStackTrace();
@@ -53,6 +59,10 @@ public class Client {
                     try {
                         message = bufferedReader.readLine();
                         System.out.println(message);
+                        if (message.equals(System.getProperty("user.dir"))) {
+                            ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+                            objectOutputStream.writeObject(fileTracker.getMap());
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

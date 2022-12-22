@@ -1,10 +1,12 @@
+package Init;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
+import java.util.HashMap;
 
 class ClientHandler implements Runnable {
-    public static ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
+    public static HashMap<String, ClientHandler> clientHandlers = new HashMap<>();
     private Socket socket;
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
@@ -16,8 +18,8 @@ class ClientHandler implements Runnable {
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.clientName = bufferedReader.readLine();
-            clientHandlers.add(this);
-            broadcastMessage("Server: "+clientName + " has joined the chat");
+            clientHandlers.put(clientName, this);
+            broadcastMessage(System.getProperty("user.dir"));
         } catch (Exception e) {
             closeEverything(socket, bufferedReader, bufferedWriter);
             e.printStackTrace();
@@ -29,8 +31,12 @@ class ClientHandler implements Runnable {
 
         while (socket.isConnected()) {
             try {
-                message = bufferedReader.readLine();
-                broadcastMessage(clientName + ": " + message);
+                ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+                HashMap<String, Long> filesAndFolders = (HashMap<String, Long>) ois.readObject();
+
+                for (String key : filesAndFolders.keySet()) {
+                    System.out.println(key + " - Size: " + filesAndFolders.get(key));
+                }
             } catch (Exception e) {
                 closeEverything(socket, bufferedReader, bufferedWriter);
                 e.printStackTrace();
@@ -40,17 +46,13 @@ class ClientHandler implements Runnable {
     }
 
     public void broadcastMessage(String message) {
-        for (ClientHandler clientHandler : clientHandlers) {
-            try {
-                if (!clientHandler.clientName.equals(clientName)) {
-                    clientHandler.bufferedWriter.write(message);
-                    clientHandler.bufferedWriter.newLine();
-                    clientHandler.bufferedWriter.flush();
-                }
-            } catch (Exception e) {
-                closeEverything(socket, bufferedReader, bufferedWriter);
-                e.printStackTrace();
-            }
+        try {
+            clientHandlers.get(clientName).bufferedWriter.write(message);
+            clientHandlers.get(clientName).bufferedWriter.newLine();
+            clientHandlers.get(clientName).bufferedWriter.flush();
+        } catch (Exception e) {
+            closeEverything(socket, bufferedReader, bufferedWriter);
+            e.printStackTrace();
         }
     }
 
@@ -86,18 +88,23 @@ public class Server {
     }
 
     public void startServer() {
-        try {
-            while(!serverSocket.isClosed()) {
-                Socket socket = serverSocket.accept();
-                System.out.println("New client connected");
-                ClientHandler clientHandler = new ClientHandler(socket);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    while(!serverSocket.isClosed()) {
+                        Socket socket = serverSocket.accept();
+                        System.out.println("New client connected");
+                        ClientHandler clientHandler = new ClientHandler(socket);
 
-                Thread thread = new Thread(clientHandler);
-                thread.start();
+                        Thread thread = new Thread(clientHandler);
+                        thread.start();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        });
     }
 
     public void closeServer() {
