@@ -28,6 +28,7 @@ class ClientHandler implements Runnable {
             clientHandlers.put(clientName, this);
             ServerApp.users.add(clientName);
             ServerApp.addItemToClientPanel(clientName);
+            ServerApp.logs.add("Client " + clientName + " connected to server");
             ServerApp.addItemToLogPanel(clientName + " has joined.");
             broadcastMessage(System.getProperty("user.dir"));
         } catch (Exception e) {
@@ -42,8 +43,12 @@ class ClientHandler implements Runnable {
                 ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
                 HashMap<String, Long> filesAndFolders = (HashMap<String, Long>) ois.readObject();
 
-                if (!clientsInfo.containsKey(clientName)) {
-                    clientsInfo.put(clientName, new FileTracker(filesAndFolders));
+                synchronized (clientName) {
+                    if (!clientsInfo.containsKey(clientName)) {
+                        clientsInfo.put(clientName, new FileTracker(filesAndFolders));
+                    } else if (filesAndFolders.size() != 0) {
+                        clientsInfo.get(clientName).setMap(filesAndFolders);
+                    }
                 }
             } catch (Exception e) {
                 closeEverything(socket, bufferedReader, bufferedWriter);
@@ -60,6 +65,17 @@ class ClientHandler implements Runnable {
             clientHandlers.get(clientName).bufferedWriter.flush();
         } catch (Exception e) {
             closeEverything(socket, bufferedReader, bufferedWriter);
+            e.printStackTrace();
+        }
+    }
+
+    static void broadcastMessageToUser(String message, String user) {
+        try {
+            clientHandlers.get(user).bufferedWriter.write(message);
+            clientHandlers.get(user).bufferedWriter.newLine();
+            clientHandlers.get(user).bufferedWriter.flush();
+        } catch (Exception e) {
+            closeUser(user);
             e.printStackTrace();
         }
     }
@@ -86,11 +102,20 @@ class ClientHandler implements Runnable {
             e.printStackTrace();
         }
     }
+
+    static void closeUser(String user) {
+        if (!clientHandlers.containsKey(user)) {
+            return;
+        }
+
+        clientHandlers.get(user).closeEverything(clientHandlers.get(user).socket, clientHandlers.get(user).bufferedReader, clientHandlers.get(user).bufferedWriter);
+    }
 }
 
 public class ServerApp implements ActionListener {
     private ServerSocket serverSocket;
     static ArrayList<String> users = new ArrayList<>();
+    static ArrayList<String> logs = new ArrayList<>();
     static JFrame mainFrame;
     static JPanel introPanel;
     static JPanel logPanel;
@@ -99,6 +124,7 @@ public class ServerApp implements ActionListener {
     static JScrollPane clientScrollPane;
     static JPanel tablePanel;
     static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    static JTextField pathTextArea;
 
     public ServerApp() {
 
@@ -121,23 +147,7 @@ public class ServerApp implements ActionListener {
         introPanel.add(introLabel, BorderLayout.CENTER);
         mainFrame.add(introPanel, BorderLayout.NORTH);
 
-        clientScrollPane = new JScrollPane();
-        clientScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        clientScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        clientScrollPane.setPreferredSize(new Dimension((int) (screenSize.width * 0.35), (int) (screenSize.height * 0.35)));
-        clientPanel = new JPanel();
-        clientPanel.setLayout(new BoxLayout(clientPanel, BoxLayout.Y_AXIS));
-        clientScrollPane.setViewportView(clientPanel);
-        mainFrame.add(clientScrollPane, BorderLayout.WEST);
-
-        logScrollPane = new JScrollPane();
-        logScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        logScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        logScrollPane.setPreferredSize(new Dimension((int) (screenSize.width * 0.15), (int) (screenSize.height * 0.15)));
-        logPanel = new JPanel();
-        logPanel.setLayout(new BoxLayout(logPanel, BoxLayout.Y_AXIS));
-        logScrollPane.setViewportView(logPanel);
-        mainFrame.add(logScrollPane, BorderLayout.EAST);
+        showInitUI();
 
         mainFrame.pack();
         mainFrame.setVisible(true);
@@ -145,6 +155,7 @@ public class ServerApp implements ActionListener {
 
     static void addItemToClientPanel(String clientName) {
         JPanel newClient = new JPanel();
+        newClient.setName(clientName);
         newClient.setLayout(new BorderLayout());
         newClient.setBackground(Color.WHITE);
         newClient.setPreferredSize(new Dimension((int) (screenSize.width * 0.35), (int) (screenSize.height * 0.05)));
@@ -168,6 +179,7 @@ public class ServerApp implements ActionListener {
 
     static void addItemToLogPanel(String log) {
         JPanel newLog = new JPanel();
+        newLog.setName(log);
         newLog.setLayout(new BorderLayout());
         newLog.setBackground(Color.WHITE);
         newLog.setPreferredSize(new Dimension((int) (screenSize.width * 0.15), (int) (screenSize.height * 0.05)));
@@ -183,9 +195,96 @@ public class ServerApp implements ActionListener {
         logPanel.repaint();
     }
 
-    static void removeInitPanels() {
+    void showInitUI() {
+        clientScrollPane = new JScrollPane();
+        clientScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        clientScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        clientScrollPane.setPreferredSize(new Dimension((int) (screenSize.width * 0.35), (int) (screenSize.height * 0.35)));
+        clientPanel = new JPanel();
+        clientPanel.setLayout(new BoxLayout(clientPanel, BoxLayout.Y_AXIS));
+        clientScrollPane.setViewportView(clientPanel);
+        mainFrame.add(clientScrollPane, BorderLayout.WEST);
+
+        logScrollPane = new JScrollPane();
+        logScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        logScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        logScrollPane.setPreferredSize(new Dimension((int) (screenSize.width * 0.15), (int) (screenSize.height * 0.15)));
+        logPanel = new JPanel();
+        logPanel.setLayout(new BoxLayout(logPanel, BoxLayout.Y_AXIS));
+        logScrollPane.setViewportView(logPanel);
+        mainFrame.add(logScrollPane, BorderLayout.EAST);
+    }
+
+    void removeInitPanels() {
         mainFrame.remove(clientScrollPane);
         mainFrame.remove(logScrollPane);
+        mainFrame.revalidate();
+        mainFrame.repaint();
+    }
+
+    void showDetailUI(String clientName) {
+        tablePanel = new JPanel();
+        tablePanel.setLayout(new BorderLayout());
+
+        JPanel inputField = new JPanel();
+        inputField.setLayout(new BorderLayout());
+        inputField.setPreferredSize(new Dimension((int) (screenSize.width * 0.25), (int) (screenSize.height * 0.35)));
+        pathTextArea = new JTextField(20);
+        JButton sendPath = new JButton("Send path");
+        sendPath.setActionCommand("send-"+clientName);
+        sendPath.addActionListener(this);
+        JButton refresh = new JButton("Refresh");
+        refresh.setActionCommand("refresh-"+clientName);
+        refresh.addActionListener(this);
+        inputField.add(pathTextArea, BorderLayout.CENTER);
+        inputField.add(sendPath, BorderLayout.EAST);
+        inputField.add(refresh, BorderLayout.SOUTH);
+
+        JTable table = new JTable();
+        table.setPreferredScrollableViewportSize(new Dimension((int) (screenSize.width * 0.25), (int) (screenSize.height * 0.35)));
+        table.setFillsViewportHeight(true);
+        table.setRowHeight(30);
+        table.setShowGrid(true);
+        table.setGridColor(Color.BLACK);
+
+        String columnNames[] = {"Name", "Type", "Size"};
+        DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
+        table.setModel(tableModel);
+
+        HashMap<String, Long> files = ClientHandler.clientsInfo.get(clientName).getMap();
+
+        for (String iterator : files.keySet()) {
+            String name = iterator.split("-")[0];
+            String type = iterator.split("-")[1];
+            Long size = files.get(iterator);
+            Object[] data = {name, type, size};
+            tableModel.addRow(data);
+        }
+
+        JButton back = new JButton("Back");
+        back.setActionCommand("back-to-init");
+        back.addActionListener(this);
+        tablePanel.add(back, BorderLayout.PAGE_END);
+
+        tablePanel.add(table.getTableHeader(), BorderLayout.PAGE_START);
+        tablePanel.add(table, BorderLayout.WEST);
+        tablePanel.add(inputField, BorderLayout.EAST);
+
+        mainFrame.add(tablePanel, BorderLayout.CENTER);
+        mainFrame.revalidate();
+        mainFrame.repaint();
+    }
+
+    void reloadDetailUI() {
+        mainFrame.remove(tablePanel);
+        mainFrame.revalidate();
+        mainFrame.repaint();
+    }
+
+    void returnToInitUI() {
+        mainFrame.remove(tablePanel);
+        mainFrame.add(clientScrollPane, BorderLayout.WEST);
+        mainFrame.add(logScrollPane, BorderLayout.EAST);
         mainFrame.revalidate();
         mainFrame.repaint();
     }
@@ -227,51 +326,18 @@ public class ServerApp implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         String command = e.getActionCommand();
+
         if (command.contains("detail")) {
             String clientName = command.split("-")[1];
             removeInitPanels();
-
-            tablePanel = new JPanel();
-            tablePanel.setLayout(new BorderLayout());
-            tablePanel.setBackground(Color.WHITE);
-
-            JTable table = new JTable();
-            table.setPreferredScrollableViewportSize(new Dimension((int) (screenSize.width * 0.35), (int) (screenSize.height * 0.35)));
-            table.setFillsViewportHeight(true);
-            table.setRowHeight(30);
-            table.setShowGrid(true);
-            table.setGridColor(Color.BLACK);
-
-            String columnNames[] = {"Name", "Type", "Size"};
-            DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
-            table.setModel(tableModel);
-
-            HashMap<String, Long> files = ClientHandler.clientsInfo.get(clientName).getMap();
-
-            for (String iterator : files.keySet()) {
-                System.out.println(iterator+" "+files.get(iterator));
-                String name = iterator.split("-")[0];
-                String type = iterator.split("-")[1];
-                Long size = files.get(iterator);
-                Object[] data = {name, type, size};
-                tableModel.addRow(data);
-            }
-
-            JButton back = new JButton("Back");
-            back.setActionCommand("back-to-init");
-            back.addActionListener(this);
-            tablePanel.add(back, BorderLayout.PAGE_END);
-
-            tablePanel.add(table.getTableHeader(), BorderLayout.PAGE_START);
-            tablePanel.add(table, BorderLayout.CENTER);
-            mainFrame.add(tablePanel, BorderLayout.CENTER);
-
-            mainFrame.revalidate();
-            mainFrame.repaint();
+            showDetailUI(clientName);
         } else if (command.equals("back-to-init")) {
-            mainFrame.remove(tablePanel);
-            mainFrame.add(clientScrollPane, BorderLayout.WEST);
-            mainFrame.add(logScrollPane, BorderLayout.EAST);
+            returnToInitUI();
+        } else if (command.contains("send")) {
+            ClientHandler.broadcastMessageToUser(pathTextArea.getText(), command.split("-")[1]);
+        } else if (command.contains("refresh")) {
+            reloadDetailUI();
+            showDetailUI(command.split("-")[1]);
             mainFrame.revalidate();
             mainFrame.repaint();
         }

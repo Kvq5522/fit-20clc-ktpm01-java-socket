@@ -4,10 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a6a34eef-1c56-4ea4-9eca-d0171797b75a" name="Changes" comment="fix: setLayout for logPanel and clientPanel">
+    <list default="true" id="a6a34eef-1c56-4ea4-9eca-d0171797b75a" name="Changes" comment="feat: finish send and receive information of file">
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/FileTracker/FileTracker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/FileTracker/FileTracker.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Init/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Init/Client.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ServerApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ServerApp.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test.java" afterDir="false" />
     </list>
@@ -36,16 +37,16 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "/home/khang/Desktop/java/project/src",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/khang/Desktop/java/project/src&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src" />
@@ -76,7 +77,21 @@
       <option name="project" value="LOCAL" />
       <updated>1671717597399</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="feat: create screen for monitoring specific details of client">
+      <created>1671766696350</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1671766696350</updated>
+    </task>
+    <task id="LOCAL-00003" summary="feat: finish send and receive information of file">
+      <created>1671812001745</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1671812001745</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -92,7 +107,9 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="fix: setLayout for logPanel and clientPanel" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix: setLayout for logPanel and clientPanel" />
+    <MESSAGE value="feat: create screen for monitoring specific details of client" />
+    <MESSAGE value="feat: finish send and receive information of file" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: finish send and receive information of file" />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

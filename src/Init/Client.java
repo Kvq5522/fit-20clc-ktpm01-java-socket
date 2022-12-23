@@ -10,6 +10,7 @@ public class Client {
     private Socket socket;
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
+    private int crashCount = 0;
     String clientName;
 
     FileTracker fileTracker;
@@ -59,11 +60,11 @@ public class Client {
                     try {
                         message = bufferedReader.readLine();
                         System.out.println(message);
-                        if (message.equals(System.getProperty("user.dir"))) {
-                            ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-                            objectOutputStream.writeObject(fileTracker.getMap());
-                        }
+
+                        ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+                        objectOutputStream.writeObject(fileTracker.getFilesAndFolders(message));
                     } catch (Exception e) {
+                        crashCount++;
                         e.printStackTrace();
                     }
                 }

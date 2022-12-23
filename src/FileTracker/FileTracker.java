@@ -37,6 +37,11 @@ public class FileTracker {
         HashMap<String, Long> filesAndFolders = new HashMap<>();
 
         File file = new File(path);
+
+        if (!file.exists()) {
+            return filesAndFolders;
+        }
+
         File[] files = file.listFiles();
         for (File f : files) {
             if (f.isFile()) {
