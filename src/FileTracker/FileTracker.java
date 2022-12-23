@@ -14,15 +14,37 @@ public class FileTracker {
         this.map = map;
     }
 
+    static long getFolderSize(File folder) {
+        long length = 0;
+
+        if (!folder.exists()) {
+            return 0;
+        }
+
+        for (File file : folder.listFiles()) {
+            if (file.isFile()) {
+                length += file.length();
+                continue;
+            }
+
+            length += getFolderSize(file) + 4096;
+        }
+
+        return length;
+    }
+
     public HashMap<String, Long> getFilesAndFolders(String path) {
         HashMap<String, Long> filesAndFolders = new HashMap<>();
 
         File file = new File(path);
         File[] files = file.listFiles();
         for (File f : files) {
-            if (f.isFile() || f.isDirectory()) {
-                filesAndFolders.put(f.getName(), f.length());
+            if (f.isFile()) {
+                filesAndFolders.put(f.getName()+"-file", f.length());
+                continue;
             }
+
+            filesAndFolders.put(f.getName()+"-folder", getFolderSize(f));
         }
 
         return filesAndFolders;

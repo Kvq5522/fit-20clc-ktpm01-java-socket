@@ -4,6 +4,7 @@ import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.ServerSocket;
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.net.Socket;
@@ -43,10 +44,6 @@ class ClientHandler implements Runnable {
 
                 if (!clientsInfo.containsKey(clientName)) {
                     clientsInfo.put(clientName, new FileTracker(filesAndFolders));
-                }
-
-                for (String key : filesAndFolders.keySet()) {
-                    System.out.println(key + " - Size: " + filesAndFolders.get(key));
                 }
             } catch (Exception e) {
                 closeEverything(socket, bufferedReader, bufferedWriter);
@@ -100,7 +97,12 @@ public class ServerApp implements ActionListener {
     static JScrollPane logScrollPane;
     static JPanel clientPanel;
     static JScrollPane clientScrollPane;
+    static JPanel tablePanel;
     static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+    public ServerApp() {
+
+    }
 
     public ServerApp(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;
@@ -154,6 +156,9 @@ public class ServerApp implements ActionListener {
         newClient.add(clientLabel, BorderLayout.WEST);
 
         JButton seeDetail = new JButton("See details");
+        seeDetail.setFont(new Font("Arial", Font.BOLD, 20));
+        seeDetail.setActionCommand("detail-"+clientName);
+        seeDetail.addActionListener(new ServerApp());
         newClient.add(seeDetail, BorderLayout.EAST);
 
         clientPanel.add(newClient);
@@ -171,11 +176,18 @@ public class ServerApp implements ActionListener {
         logLabel.setFont(new Font("Arial", Font.BOLD, 20));
         logLabel.setForeground(Color.BLACK);
         logLabel.setHorizontalAlignment(JLabel.CENTER);
-        newLog.add(logLabel, BorderLayout.CENTER);
+        newLog.add(logLabel, BorderLayout.WEST);
 
         logPanel.add(newLog);
         logPanel.revalidate();
         logPanel.repaint();
+    }
+
+    static void removeInitPanels() {
+        mainFrame.remove(clientScrollPane);
+        mainFrame.remove(logScrollPane);
+        mainFrame.revalidate();
+        mainFrame.repaint();
     }
 
     public void startServer() {
@@ -214,6 +226,54 @@ public class ServerApp implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        String command = e.getActionCommand();
+        if (command.contains("detail")) {
+            String clientName = command.split("-")[1];
+            removeInitPanels();
 
+            tablePanel = new JPanel();
+            tablePanel.setLayout(new BorderLayout());
+            tablePanel.setBackground(Color.WHITE);
+
+            JTable table = new JTable();
+            table.setPreferredScrollableViewportSize(new Dimension((int) (screenSize.width * 0.35), (int) (screenSize.height * 0.35)));
+            table.setFillsViewportHeight(true);
+            table.setRowHeight(30);
+            table.setShowGrid(true);
+            table.setGridColor(Color.BLACK);
+
+            String columnNames[] = {"Name", "Type", "Size"};
+            DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
+            table.setModel(tableModel);
+
+            HashMap<String, Long> files = ClientHandler.clientsInfo.get(clientName).getMap();
+
+            for (String iterator : files.keySet()) {
+                System.out.println(iterator+" "+files.get(iterator));
+                String name = iterator.split("-")[0];
+                String type = iterator.split("-")[1];
+                Long size = files.get(iterator);
+                Object[] data = {name, type, size};
+                tableModel.addRow(data);
+            }
+
+            JButton back = new JButton("Back");
+            back.setActionCommand("back-to-init");
+            back.addActionListener(this);
+            tablePanel.add(back, BorderLayout.PAGE_END);
+
+            tablePanel.add(table.getTableHeader(), BorderLayout.PAGE_START);
+            tablePanel.add(table, BorderLayout.CENTER);
+            mainFrame.add(tablePanel, BorderLayout.CENTER);
+
+            mainFrame.revalidate();
+            mainFrame.repaint();
+        } else if (command.equals("back-to-init")) {
+            mainFrame.remove(tablePanel);
+            mainFrame.add(clientScrollPane, BorderLayout.WEST);
+            mainFrame.add(logScrollPane, BorderLayout.EAST);
+            mainFrame.revalidate();
+            mainFrame.repaint();
+        }
     }
 }
