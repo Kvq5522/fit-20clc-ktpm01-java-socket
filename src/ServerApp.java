@@ -30,8 +30,7 @@ class ClientHandler implements Runnable {
             ServerApp.addItemToClientPanel(clientName);
             ServerApp.logs.add("Client " + clientName + " connected to server");
             ServerApp.addItemToLogPanel(clientName + " has joined.");
-            broadcastMessage(System.getProperty("user.dir"));
-            System.out.println(clientName + " connected to server");
+            clientsInfo.put(clientName, new FileTracker());
         } catch (Exception e) {
             closeEverything(socket, bufferedReader, bufferedWriter);
             e.printStackTrace();
@@ -47,7 +46,34 @@ class ClientHandler implements Runnable {
                 if (!clientsInfo.containsKey(clientName)) {
                     clientsInfo.put(clientName, new FileTracker(filesAndFolders));
                 } else if (filesAndFolders.size() != 0) {
-                    clientsInfo.get(clientName).setMap(filesAndFolders);
+                    HashMap<String, Long> currentFilesAndFolders = clientsInfo.get(clientName).getMap();
+
+                    if (!currentFilesAndFolders.equals(filesAndFolders)) {
+                        for (String key : filesAndFolders.keySet()) {
+                            if (!currentFilesAndFolders.containsKey(key)) {
+                                ServerApp.addItemToDetailLogPanel(clientName + " has added " + key.split("-")[0], clientName);
+                                currentFilesAndFolders.remove(key);
+                                continue;
+
+                            }
+
+                            if (currentFilesAndFolders.get(key) != filesAndFolders.get(key)) {
+                                ServerApp.addItemToDetailLogPanel(clientName + " has modified " + key.split("-")[0], clientName);
+                                currentFilesAndFolders.remove(key);
+                                continue;
+                            }
+
+                            currentFilesAndFolders.remove(key);
+                        }
+
+                        for (String key : currentFilesAndFolders.keySet()) {
+                            if (!filesAndFolders.containsKey(key)) {
+                                ServerApp.addItemToDetailLogPanel(clientName + " has deleted " + key, clientName);
+                            }
+                        }
+
+                        clientsInfo.get(clientName).setMap(filesAndFolders);
+                    }
                 }
             } catch (Exception e) {
                 closeEverything(socket, bufferedReader, bufferedWriter);
@@ -132,6 +158,9 @@ public class ServerApp implements ActionListener{
     static JPanel clientPanel;
     static JScrollPane clientScrollPane;
     static JPanel tablePanel;
+    static JTable table;
+    static HashMap<String, JPanel> clientsDetailPanel = new HashMap<>();
+    static HashMap<String, JScrollPane> clientsDetailScrollPane = new HashMap<>();
     static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     static JTextField pathTextArea;
 
@@ -253,14 +282,26 @@ public class ServerApp implements ActionListener{
         JButton sendPath = new JButton("Send path");
         sendPath.setActionCommand("send-"+clientName);
         sendPath.addActionListener(this);
-        JButton refresh = new JButton("Refresh");
+        JButton refresh = new JButton("Please refresh to see new table");
         refresh.setActionCommand("refresh-"+clientName);
         refresh.addActionListener(this);
         inputField.add(pathTextArea, BorderLayout.CENTER);
         inputField.add(sendPath, BorderLayout.EAST);
         inputField.add(refresh, BorderLayout.SOUTH);
 
-        JTable table = new JTable();
+        if (!clientsDetailPanel.containsKey(clientName)) {
+            JPanel detailsPanel = new JPanel();
+            detailsPanel.setLayout(new BoxLayout(detailsPanel, BoxLayout.Y_AXIS));
+            detailsPanel.setPreferredSize(new Dimension((int) (screenSize.width * 0.25), (int) (screenSize.height * 0.35)));
+            clientsDetailPanel.put(clientName, detailsPanel);
+            JScrollPane detailsScrollPane = new JScrollPane();
+            detailsScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+            detailsScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            detailsScrollPane.setViewportView(detailsPanel);
+            clientsDetailScrollPane.put(clientName, detailsScrollPane);
+        }
+
+        table = new JTable();
         table.setName("table-"+clientName);
         table.setPreferredScrollableViewportSize(new Dimension((int) (screenSize.width * 0.25), (int) (screenSize.height * 0.35)));
         table.setFillsViewportHeight(true);
@@ -289,6 +330,7 @@ public class ServerApp implements ActionListener{
 
         tablePanel.add(table.getTableHeader(), BorderLayout.PAGE_START);
         tablePanel.add(table, BorderLayout.WEST);
+        tablePanel.add(clientsDetailScrollPane.get(clientName), BorderLayout.CENTER);
         tablePanel.add(inputField, BorderLayout.EAST);
 
         mainFrame.add(tablePanel, BorderLayout.CENTER);
@@ -296,17 +338,34 @@ public class ServerApp implements ActionListener{
         mainFrame.repaint();
     }
 
+    static void addItemToDetailLogPanel(String log, String clientName) {
+        JPanel newLog = new JPanel();
+        newLog.setName(log);
+        newLog.setLayout(new BorderLayout());
+        newLog.setBackground(Color.WHITE);
+        newLog.setPreferredSize(new Dimension((int) (screenSize.width * 0.15), (int) (screenSize.height * 0.05)));
+
+        JLabel logLabel = new JLabel(log);
+        logLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        logLabel.setForeground(Color.BLACK);
+        logLabel.setHorizontalAlignment(JLabel.CENTER);
+        newLog.add(logLabel, BorderLayout.WEST);
+
+        clientsDetailPanel.get(clientName).add(newLog);
+        clientsDetailPanel.get(clientName).revalidate();
+        clientsDetailPanel.get(clientName).repaint();
+    }
+
     static void updateTablePanel(HashMap<String, Long> files, String clientName) {
-        //remove jtable with name
+        //remove table from tablePanel
         for (Component component : tablePanel.getComponents()) {
             if (component.getName().equals("table-"+clientName)) {
                 tablePanel.remove(component);
-                break;
             }
         }
 
-        //add new jtable with name
-        JTable table = new JTable();
+        //create new table
+        table = new JTable();
         table.setName("table-"+clientName);
         table.setPreferredScrollableViewportSize(new Dimension((int) (screenSize.width * 0.25), (int) (screenSize.height * 0.35)));
         table.setFillsViewportHeight(true);
@@ -314,10 +373,12 @@ public class ServerApp implements ActionListener{
         table.setShowGrid(true);
         table.setGridColor(Color.BLACK);
 
+        //create new table model
         String columnNames[] = {"Name", "Type", "Size"};
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
         table.setModel(tableModel);
 
+        //add data to table model
         for (String iterator : files.keySet()) {
             String name = iterator.split("-")[0];
             String type = iterator.split("-")[1];
@@ -326,10 +387,14 @@ public class ServerApp implements ActionListener{
             tableModel.addRow(data);
         }
 
+        //add table to tablePanel
         tablePanel.add(table.getTableHeader(), BorderLayout.PAGE_START);
         tablePanel.add(table, BorderLayout.WEST);
         tablePanel.revalidate();
         tablePanel.repaint();
+
+        mainFrame.revalidate();
+        mainFrame.repaint();
     }
 
     void reloadDetailUI() {
@@ -350,7 +415,6 @@ public class ServerApp implements ActionListener{
         try {
             while(!serverSocket.isClosed()) {
                 Socket socket = serverSocket.accept();
-                System.out.println("New client connected");
                 ClientHandler clientHandler = new ClientHandler(socket);
 
                 Thread thread = new Thread(clientHandler);

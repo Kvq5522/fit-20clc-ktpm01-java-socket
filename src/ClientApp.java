@@ -6,13 +6,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.Scanner;
 class Client {
     private Socket socket;
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
     private int crashCount = 0;
-    String path = System.getProperty("user.dir");
+    String path;
     String clientName;
 
     FileTracker fileTracker;
@@ -25,6 +26,7 @@ class Client {
             bufferedWriter.write(clientName);
             bufferedWriter.newLine();
             bufferedWriter.flush();
+            fileTracker = new FileTracker();
         } catch (Exception e ) {
             closeEverything(socket, bufferedReader, bufferedWriter);
             e.printStackTrace();
@@ -40,12 +42,21 @@ class Client {
                 while (socket.isConnected()) {
                     try {
                         message = bufferedReader.readLine();
-                        System.out.println(message);
+
+                        if (message == null || message.isEmpty()) {
+                            continue;
+                        }
+
+                        HashMap<String, Long> map = fileTracker.getFilesAndFolders(message);
+
+                        if (map.size() == 0) {
+                            continue;
+                        }
 
                         path = message;
-
+                        fileTracker.setMap(map);
                         ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-                        objectOutputStream.writeObject(fileTracker.getFilesAndFolders(message));
+                        objectOutputStream.writeObject(map);
                     } catch (Exception e) {
                         crashCount++;
 
@@ -67,6 +78,10 @@ class Client {
             public void run() {
                 while (socket.isConnected()) {
                     try {
+                        if (path == null || path.isEmpty()) {
+                            continue;
+                        }
+
                         if (fileTracker.getFilesAndFolders(path).equals(fileTracker.getMap())) {
                             continue;
                         }
@@ -113,7 +128,6 @@ class Client {
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.fileTracker = new FileTracker();
-            this.fileTracker.setMap(fileTracker.getFilesAndFolders(System.getProperty("user.dir")));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -212,9 +226,6 @@ public class ClientApp implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         String command = e.getActionCommand();
         if (command.equals("connect")) {
-            System.out.println(nameTextField.getText());
-            System.out.println(IPTextField.getText());
-            System.out.println(portTextField.getText());
             client.connectToServer(nameTextField.getText(), IPTextField.getText(), Integer.parseInt(portTextField.getText()));
 
             if (client.isConnectionAlive()) {
