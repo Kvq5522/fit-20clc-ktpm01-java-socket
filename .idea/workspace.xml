@@ -4,13 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a6a34eef-1c56-4ea4-9eca-d0171797b75a" name="Changes" comment="feat: finish send and receive information of file">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="a6a34eef-1c56-4ea4-9eca-d0171797b75a" name="Changes" comment="feat: finish send and receive information of file for multiple clients">
+      <change afterPath="$PROJECT_DIR$/src/ClientApp.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/FileTracker/FileTracker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/FileTracker/FileTracker.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Init/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Init/Client.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Init/Client.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Init/Server.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ServerApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ServerApp.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,6 +26,19 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">
+    <option name="selectedUrlAndAccountId">
+      <UrlAndAccount>
+        <option name="accountId" value="166df12a-beab-44fc-a5d3-fa93dff44396" />
+        <option name="url" value="https://github.com/Kvq5522/fit-20clc-ktpm01-java-socket.git" />
+      </UrlAndAccount>
+    </option>
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -53,8 +65,8 @@
     </key>
   </component>
   <component name="RunManager">
-    <configuration name="Client" type="Application" factoryName="Application" singleton="false" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Init.Client" />
+    <configuration name="ClientApp" type="Application" factoryName="Application" singleton="false" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="ClientApp" />
       <module name="project" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -91,7 +103,14 @@
       <option name="project" value="LOCAL" />
       <updated>1671812001745</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="feat: finish send and receive information of file for multiple clients">
+      <created>1671812265815</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1671812265815</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -109,9 +128,19 @@
     <MESSAGE value="fix: setLayout for logPanel and clientPanel" />
     <MESSAGE value="feat: create screen for monitoring specific details of client" />
     <MESSAGE value="feat: finish send and receive information of file" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: finish send and receive information of file" />
+    <MESSAGE value="feat: finish send and receive information of file for multiple clients" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: finish send and receive information of file for multiple clients" />
   </component>
   <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/ClientApp.java</url>
+          <line>176</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
     <pin-to-top-manager>
       <pinned-members>
         <PinnedItemInfo parentTag="javax.swing.table.DefaultTableModel" memberName="columnIdentifiers" />

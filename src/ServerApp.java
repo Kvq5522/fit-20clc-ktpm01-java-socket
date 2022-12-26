@@ -31,6 +31,7 @@ class ClientHandler implements Runnable {
             ServerApp.logs.add("Client " + clientName + " connected to server");
             ServerApp.addItemToLogPanel(clientName + " has joined.");
             broadcastMessage(System.getProperty("user.dir"));
+            System.out.println(clientName + " connected to server");
         } catch (Exception e) {
             closeEverything(socket, bufferedReader, bufferedWriter);
             e.printStackTrace();
@@ -43,12 +44,10 @@ class ClientHandler implements Runnable {
                 ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
                 HashMap<String, Long> filesAndFolders = (HashMap<String, Long>) ois.readObject();
 
-                synchronized (clientName) {
-                    if (!clientsInfo.containsKey(clientName)) {
-                        clientsInfo.put(clientName, new FileTracker(filesAndFolders));
-                    } else if (filesAndFolders.size() != 0) {
-                        clientsInfo.get(clientName).setMap(filesAndFolders);
-                    }
+                if (!clientsInfo.containsKey(clientName)) {
+                    clientsInfo.put(clientName, new FileTracker(filesAndFolders));
+                } else if (filesAndFolders.size() != 0) {
+                    clientsInfo.get(clientName).setMap(filesAndFolders);
                 }
             } catch (Exception e) {
                 closeEverything(socket, bufferedReader, bufferedWriter);
@@ -82,7 +81,11 @@ class ClientHandler implements Runnable {
 
     public void removeClientHandler() {
         clientHandlers.remove(this);
-        broadcastMessage("Server: "+clientName + " has left the chat");
+        clientsInfo.remove(this);
+    }
+
+    public boolean isConnectionAlive() {
+        return socket.isConnected();
     }
 
     public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
@@ -98,6 +101,12 @@ class ClientHandler implements Runnable {
             if (socket != null) {
                 socket.close();
             }
+
+            ServerApp.users.remove(clientName);
+            ServerApp.removeItemFromClientPanel(clientName);
+            ServerApp.removeItemFromClientPanel(clientName);
+            ServerApp.logs.add("Client " + clientName + " disconnected from server.");
+            ServerApp.addItemToLogPanel(clientName + " has left.");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -112,7 +121,7 @@ class ClientHandler implements Runnable {
     }
 }
 
-public class ServerApp implements ActionListener {
+public class ServerApp implements ActionListener{
     private ServerSocket serverSocket;
     static ArrayList<String> users = new ArrayList<>();
     static ArrayList<String> logs = new ArrayList<>();
@@ -175,6 +184,17 @@ public class ServerApp implements ActionListener {
         clientPanel.add(newClient);
         clientPanel.revalidate();
         clientPanel.repaint();
+    }
+
+    static void removeItemFromClientPanel(String clientName) {
+        for (Component component : clientPanel.getComponents()) {
+            if (component.getName().equals(clientName)) {
+                clientPanel.remove(component);
+                clientPanel.revalidate();
+                clientPanel.repaint();
+                break;
+            }
+        }
     }
 
     static void addItemToLogPanel(String log) {
@@ -241,6 +261,7 @@ public class ServerApp implements ActionListener {
         inputField.add(refresh, BorderLayout.SOUTH);
 
         JTable table = new JTable();
+        table.setName("table-"+clientName);
         table.setPreferredScrollableViewportSize(new Dimension((int) (screenSize.width * 0.25), (int) (screenSize.height * 0.35)));
         table.setFillsViewportHeight(true);
         table.setRowHeight(30);
@@ -273,6 +294,42 @@ public class ServerApp implements ActionListener {
         mainFrame.add(tablePanel, BorderLayout.CENTER);
         mainFrame.revalidate();
         mainFrame.repaint();
+    }
+
+    static void updateTablePanel(HashMap<String, Long> files, String clientName) {
+        //remove jtable with name
+        for (Component component : tablePanel.getComponents()) {
+            if (component.getName().equals("table-"+clientName)) {
+                tablePanel.remove(component);
+                break;
+            }
+        }
+
+        //add new jtable with name
+        JTable table = new JTable();
+        table.setName("table-"+clientName);
+        table.setPreferredScrollableViewportSize(new Dimension((int) (screenSize.width * 0.25), (int) (screenSize.height * 0.35)));
+        table.setFillsViewportHeight(true);
+        table.setRowHeight(30);
+        table.setShowGrid(true);
+        table.setGridColor(Color.BLACK);
+
+        String columnNames[] = {"Name", "Type", "Size"};
+        DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
+        table.setModel(tableModel);
+
+        for (String iterator : files.keySet()) {
+            String name = iterator.split("-")[0];
+            String type = iterator.split("-")[1];
+            Long size = files.get(iterator);
+            Object[] data = {name, type, size};
+            tableModel.addRow(data);
+        }
+
+        tablePanel.add(table.getTableHeader(), BorderLayout.PAGE_START);
+        tablePanel.add(table, BorderLayout.WEST);
+        tablePanel.revalidate();
+        tablePanel.repaint();
     }
 
     void reloadDetailUI() {
