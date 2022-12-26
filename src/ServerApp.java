@@ -68,10 +68,11 @@ class ClientHandler implements Runnable {
 
                         for (String key : currentFilesAndFolders.keySet()) {
                             if (!filesAndFolders.containsKey(key)) {
-                                ServerApp.addItemToDetailLogPanel(clientName + " has deleted " + key, clientName);
+                                ServerApp.addItemToDetailLogPanel(clientName + " has deleted " + key.split("-")[0], clientName);
                             }
                         }
 
+                        ServerApp.updateTable(filesAndFolders);
                         clientsInfo.get(clientName).setMap(filesAndFolders);
                     }
                 }
@@ -356,29 +357,11 @@ public class ServerApp implements ActionListener{
         clientsDetailPanel.get(clientName).repaint();
     }
 
-    static void updateTablePanel(HashMap<String, Long> files, String clientName) {
-        //remove table from tablePanel
-        for (Component component : tablePanel.getComponents()) {
-            if (component.getName().equals("table-"+clientName)) {
-                tablePanel.remove(component);
-            }
-        }
-
-        //create new table
-        table = new JTable();
-        table.setName("table-"+clientName);
-        table.setPreferredScrollableViewportSize(new Dimension((int) (screenSize.width * 0.25), (int) (screenSize.height * 0.35)));
-        table.setFillsViewportHeight(true);
-        table.setRowHeight(30);
-        table.setShowGrid(true);
-        table.setGridColor(Color.BLACK);
-
-        //create new table model
+    static void updateTable(HashMap<String, Long> files) {
         String columnNames[] = {"Name", "Type", "Size"};
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
         table.setModel(tableModel);
 
-        //add data to table model
         for (String iterator : files.keySet()) {
             String name = iterator.split("-")[0];
             String type = iterator.split("-")[1];
@@ -387,14 +370,8 @@ public class ServerApp implements ActionListener{
             tableModel.addRow(data);
         }
 
-        //add table to tablePanel
-        tablePanel.add(table.getTableHeader(), BorderLayout.PAGE_START);
-        tablePanel.add(table, BorderLayout.WEST);
-        tablePanel.revalidate();
-        tablePanel.repaint();
-
-        mainFrame.revalidate();
-        mainFrame.repaint();
+        table.revalidate();
+        table.repaint();
     }
 
     void reloadDetailUI() {

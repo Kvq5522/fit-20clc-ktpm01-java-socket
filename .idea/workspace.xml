@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a6a34eef-1c56-4ea4-9eca-d0171797b75a" name="Changes" comment="">
+    <list default="true" id="a6a34eef-1c56-4ea4-9eca-d0171797b75a" name="Changes" comment="feat: finish logging directory changes with UI">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ClientApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ClientApp.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ServerApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ServerApp.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -47,16 +46,16 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "/home/khang/Desktop/java/project",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/khang/Desktop/java/project&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src" />
@@ -108,7 +107,14 @@
       <option name="project" value="LOCAL" />
       <updated>1671812265815</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="feat: finish logging directory changes with UI">
+      <created>1672072357388</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1672072357388</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -127,7 +133,9 @@
     <MESSAGE value="feat: create screen for monitoring specific details of client" />
     <MESSAGE value="feat: finish send and receive information of file" />
     <MESSAGE value="feat: finish send and receive information of file for multiple clients" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: finish send and receive information of file for multiple clients" />
+    <MESSAGE value="feat: finish logging directory changes UI" />
+    <MESSAGE value="feat: finish logging directory changes with UI" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: finish logging directory changes with UI" />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
