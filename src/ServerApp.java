@@ -49,31 +49,31 @@ class ClientHandler implements Runnable {
                     HashMap<String, Long> currentFilesAndFolders = clientsInfo.get(clientName).getMap();
 
                     if (!currentFilesAndFolders.equals(filesAndFolders)) {
-                        for (String key : filesAndFolders.keySet()) {
-                            if (!currentFilesAndFolders.containsKey(key)) {
-                                ServerApp.addItemToDetailLogPanel(clientName + " has added " + key.split("-")[0], clientName);
-                                currentFilesAndFolders.remove(key);
-                                continue;
+                        HashMap<String, Long> curMap = clientsInfo.get(clientName).getMap();
 
-                            }
-
-                            if (currentFilesAndFolders.get(key) != filesAndFolders.get(key)) {
-                                ServerApp.addItemToDetailLogPanel(clientName + " has modified " + key.split("-")[0], clientName);
-                                currentFilesAndFolders.remove(key);
-                                continue;
-                            }
-
-                            currentFilesAndFolders.remove(key);
-                        }
-
-                        for (String key : currentFilesAndFolders.keySet()) {
+                        for (String key : curMap.keySet()) {
                             if (!filesAndFolders.containsKey(key)) {
                                 ServerApp.addItemToDetailLogPanel(clientName + " has deleted " + key.split("-")[0], clientName);
+                                continue;
+                            }
+
+                            if (filesAndFolders.containsKey(key) && !curMap.get(key).equals(filesAndFolders.get(key))) {
+                                System.out.println("key: " + key + " curMap.get(key): " + curMap.get(key) + " filesAndFolders.get(key): " + filesAndFolders.get(key));
+                                ServerApp.addItemToDetailLogPanel(clientName + " has modified " + key.split("-")[0], clientName);
+                                curMap.put(key, filesAndFolders.get(key));
+                                filesAndFolders.remove(key);
+                            }
+                        }
+
+                        for (String key : filesAndFolders.keySet()) {
+                            if (!curMap.containsKey(key)) {
+                                ServerApp.addItemToDetailLogPanel(clientName + " has added " + key.split("-")[0], clientName);
+                                curMap.put(key, filesAndFolders.get(key));
                             }
                         }
 
                         ServerApp.updateTable(filesAndFolders);
-                        clientsInfo.get(clientName).setMap(filesAndFolders);
+                        clientsInfo.get(clientName).setMap(curMap);
                     }
                 }
             } catch (Exception e) {
