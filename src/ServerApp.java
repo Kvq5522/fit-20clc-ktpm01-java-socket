@@ -25,6 +25,15 @@ class ClientHandler implements Runnable {
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.clientName = bufferedReader.readLine();
+
+            if (clientName == null || clientName.isEmpty()) {
+                closeEverything(socket, bufferedReader, bufferedWriter);
+                return;
+            }
+            if (clientHandlers.containsKey(clientName)) {
+                return;
+            }
+
             clientHandlers.put(clientName, this);
             ServerApp.users.add(clientName);
             ServerApp.addItemToClientPanel(clientName);
@@ -50,10 +59,12 @@ class ClientHandler implements Runnable {
 
                     if (!currentFilesAndFolders.equals(filesAndFolders)) {
                         HashMap<String, Long> curMap = clientsInfo.get(clientName).getMap();
+                        ArrayList<String> deleted = new ArrayList<>();
 
                         for (String key : curMap.keySet()) {
                             if (!filesAndFolders.containsKey(key)) {
                                 ServerApp.addItemToDetailLogPanel(clientName + " has deleted " + key.split("-")[0], clientName);
+                                deleted.add(key);
                                 continue;
                             }
 
@@ -70,6 +81,10 @@ class ClientHandler implements Runnable {
                                 ServerApp.addItemToDetailLogPanel(clientName + " has added " + key.split("-")[0], clientName);
                                 curMap.put(key, filesAndFolders.get(key));
                             }
+                        }
+
+                        for (String key : deleted) {
+                            curMap.remove(key);
                         }
 
                         ServerApp.updateTable(filesAndFolders);
@@ -109,10 +124,6 @@ class ClientHandler implements Runnable {
     public void removeClientHandler() {
         clientHandlers.remove(this);
         clientsInfo.remove(this);
-    }
-
-    public boolean isConnectionAlive() {
-        return socket.isConnected();
     }
 
     public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
