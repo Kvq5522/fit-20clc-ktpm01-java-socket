@@ -68,8 +68,8 @@ class ClientHandler implements Runnable {
                                 continue;
                             }
 
-                            if (filesAndFolders.containsKey(key) && !curMap.get(key).equals(filesAndFolders.get(key))) {
-                                System.out.println("key: " + key + " curMap.get(key): " + curMap.get(key) + " filesAndFolders.get(key): " + filesAndFolders.get(key));
+                            if (!curMap.get(key).equals(filesAndFolders.get(key))) {
+                                System.out.println("key: " + " curMap.get(key): " + curMap.get(key) + " filesAndFolders.get(key): " + filesAndFolders.get(key));
                                 ServerApp.addItemToDetailLogPanel(clientName + " has modified " + key.split("-")[0], clientName);
                                 curMap.put(key, filesAndFolders.get(key));
                                 filesAndFolders.remove(key);
@@ -87,8 +87,13 @@ class ClientHandler implements Runnable {
                             curMap.remove(key);
                         }
 
-                        ServerApp.updateTable(filesAndFolders);
+                        System.out.println(clientName.equals(ServerApp.curClient));
+
                         clientsInfo.get(clientName).setMap(curMap);
+
+                        if (clientName.equals(ServerApp.curClient)) {
+                            ServerApp.updateTable(curMap);
+                        }
                     }
                 }
             } catch (Exception e) {
@@ -145,6 +150,8 @@ class ClientHandler implements Runnable {
             ServerApp.removeItemFromClientPanel(clientName);
             ServerApp.logs.add("Client " + clientName + " disconnected from server.");
             ServerApp.addItemToLogPanel(clientName + " has left.");
+            clientsInfo.remove(clientName);
+            clientHandlers.remove(clientName);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -161,6 +168,7 @@ class ClientHandler implements Runnable {
 
 public class ServerApp implements ActionListener{
     private ServerSocket serverSocket;
+    static String curClient = "";
     static ArrayList<String> users = new ArrayList<>();
     static ArrayList<String> logs = new ArrayList<>();
     static JFrame mainFrame;
@@ -438,9 +446,11 @@ public class ServerApp implements ActionListener{
 
         if (command.contains("detail")) {
             String clientName = command.split("-")[1];
+            curClient = clientName;
             removeInitPanels();
             showDetailUI(clientName);
         } else if (command.equals("back-to-init")) {
+            curClient = "";
             returnToInitUI();
         } else if (command.contains("send")) {
             ClientHandler.broadcastMessageToUser(pathTextArea.getText(), command.split("-")[1]);
